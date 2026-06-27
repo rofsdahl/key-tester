@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Button Tester</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a0a;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      gap: 40px;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #666;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    #event-display {
+      text-align: center;
+    }
+
+    #event-name {
+      font-size: 4rem;
+      font-weight: 700;
+      line-height: 1;
+      min-height: 5rem;
+      transition: color 0.1s;
+    }
+
+    #event-detail {
+      font-size: 1rem;
+      color: #555;
+      margin-top: 12px;
+      font-family: monospace;
+      min-height: 1.4em;
+    }
+
+    #flash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.05s;
+    }
+
+    #log {
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .log-label {
+      font-size: 0.75rem;
+      color: #444;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .log-entry {
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: fadeIn 0.15s ease;
+    }
+
+    .log-entry .action { font-weight: 600; }
+    .log-entry .time { color: #444; font-size: 0.75rem; font-family: monospace; }
+
+    .UP { color: #4ade80; }
+    .DOWN { color: #60a5fa; }
+    .DOUBLE_UP { color: #facc15; }
+    .DOUBLE_DOWN { color: #f97316; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    #hint {
+      font-size: 0.8rem;
+      color: #333;
+      text-align: center;
+      max-width: 280px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<div id="flash"></div>
+
+<h1>Button Tester</h1>
+
+<div id="event-display">
+  <div id="event-name" class="—">—</div>
+  <div id="event-detail">press a button to start</div>
+</div>
+
+<div id="log">
+  <div class="log-label">Last events</div>
+</div>
+
+<p id="hint">Connect your headset or clicker via Bluetooth, then press the volume buttons.</p>
+
+<script>
+  const DOUBLE_PRESS_MS = 350;
+
+  let lastKey = null;
+  let lastTime = 0;
+
+  const eventName = document.getElementById('event-name');
+  const eventDetail = document.getElementById('event-detail');
+  const flash = document.getElementById('flash');
+  const log = document.getElementById('log');
+
+  const colorMap = {
+    UP: '#4ade80',
+    DOWN: '#60a5fa',
+    DOUBLE_UP: '#facc15',
+    DOUBLE_DOWN: '#f97316',
+  };
+
+  function showEvent(action, key, code) {
+    eventName.textContent = action.replace('_', ' ');
+    eventName.className = action;
+    eventDetail.textContent = `key: "${key}"  code: "${code}"`;
+
+    // Flash background
+    flash.style.background = colorMap[action] || '#fff';
+    flash.style.opacity = '0.12';
+    setTimeout(() => flash.style.opacity = '0', 150);
+
+    addLog(action, key);
+  }
+
+  function addLog(action, key) {
+    const now = new Date();
+    const time = now.toLocaleTimeString('en', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerHTML = `<span class="action ${action}">${action.replace('_', ' ')}</span><span class="time">${key} · ${time}</span>`;
+
+    // Insert after label
+    const label = log.querySelector('.log-label');
+    label.after(entry);
+
+    // Keep max 5 entries
+    const entries = log.querySelectorAll('.log-entry');
+    if (entries.length > 5) entries[entries.length - 1].remove();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    // Prevent volume keys from doing browser things
+    e.preventDefault();
+
+    const now = Date.now();
+    const key = e.key;
+    const code = e.code;
+
+    let direction = null;
+    if (key === 'AudioVolumeUp' || key === 'VolumeUp') direction = 'UP';
+    else if (key === 'AudioVolumeDown' || key === 'VolumeDown') direction = 'DOWN';
+    else if (key === 'ArrowUp') direction = 'UP';
+    else if (key === 'ArrowDown') direction = 'DOWN';
+    else if (key === 'ArrowRight') direction = 'UP';
+    else if (key === 'ArrowLeft') direction = 'DOWN';
+    else if (key === ' ' || key === 'Enter') direction = 'UP';
+    else {
+      // Show unknown key anyway
+      showEvent('UP', key, code);
+      eventName.textContent = key || code;
+      eventName.style.color = '#fff';
+      return;
+    }
+
+    const isDouble = (lastKey === direction) && (now - lastTime < DOUBLE_PRESS_MS);
+    const action = isDouble ? `DOUBLE_${direction}` : direction;
+
+    showEvent(action, key, code);
+
+    lastKey = isDouble ? null : direction;
+    lastTime = now;
+  });
+</script>
+
+</body>
+</html>
