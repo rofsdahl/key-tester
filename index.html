@@ -62,30 +62,37 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       padding: 2vh 0;
     }
 
     #keepalive {
       width: 6px;
-      flex: 1;
-      margin: 1vh 0;
+      height: 60vh;
       border-radius: 3px;
     }
 
     .ctrl {
-      font-size: 6vw;
-      color: #444;
+      position: fixed;
+      top: 2vh;
+      font-size: 5vw;
+      color: #555;
       cursor: pointer;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
-      padding: 1vh;
+      padding: 1vh 2vw;
     }
 
     .ctrl:active { color: #fff; }
+
+    #btn-undo { left: 2vw; }
+    #btn-reset { right: 2vw; }
   </style>
 </head>
 <body tabindex="0">
+
+<div class="ctrl" id="btn-undo" onclick="undo()">↩</div>
+<div class="ctrl" id="btn-reset" onclick="reset()">0:0</div>
 
 <div id="side-left" onclick="addPoint(0)">
   <div class="point" id="pt-left">0</div>
@@ -93,9 +100,7 @@
 </div>
 
 <div id="divider">
-  <div class="ctrl" onclick="undo()">↩</div>
   <video id="keepalive" autoplay playsinline muted loop></video>
-  <div class="ctrl" onclick="reset()">✕</div>
 </div>
 
 <div id="side-right" onclick="addPoint(1)">
