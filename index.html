@@ -12,6 +12,11 @@
       background: #0a0a0a;
       color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100dvh;
+      /* body stays black always — iOS samples this for status bar */
+    }
+
+    #wrapper {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -19,6 +24,11 @@
       min-height: 100dvh;
       gap: 40px;
       padding: 24px;
+      /* safe area so content doesn't go under notch */
+      padding-top: calc(24px + env(safe-area-inset-top));
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      /* this is what flashes, NOT the body */
+      transition: background 0.05s;
     }
 
     h1 {
@@ -47,14 +57,6 @@
       margin-top: 12px;
       font-family: monospace;
       min-height: 1.4em;
-    }
-
-    #flash {
-      position: fixed;
-      inset: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.05s;
     }
 
     #log {
@@ -87,11 +89,6 @@
     .log-entry .action { font-weight: 600; }
     .log-entry .time { color: #444; font-size: 0.75rem; font-family: monospace; }
 
-    .UP { color: #4ade80; }
-    .DOWN { color: #60a5fa; }
-    .DOUBLE_UP { color: #facc15; }
-    .DOUBLE_DOWN { color: #f97316; }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(4px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -104,46 +101,40 @@
       max-width: 280px;
       line-height: 1.6;
     }
-
-    #version {
-      font-size: 0.7rem;
-      color: #555;
-      font-family: monospace;
-    }
   </style>
 </head>
 <body tabindex="0">
 
-<div id="flash"></div>
+<div id="wrapper">
+  <h1>Button Tester #3</h1>
 
-<h1>Button Tester #2</h1>
+  <div id="event-display">
+    <div id="event-name">—</div>
+    <div id="event-detail">press a button to start</div>
+  </div>
 
-<div id="event-display">
-  <div id="event-name" class="—">—</div>
-  <div id="event-detail">press a button to start</div>
+  <div id="log">
+    <div class="log-label">Last events</div>
+  </div>
+
+  <p id="hint">Press spacebar — single, double, or triple. Each pattern is detected after a short pause.</p>
 </div>
-
-<div id="log">
-  <div class="log-label">Last events</div>
-</div>
-
-<p id="hint">Press spacebar — single, double, or triple. Each pattern is detected after a short pause.</p>
 
 <script>
-  const WINDOW_MS = 400; // time to wait for more presses
+  const WINDOW_MS = 400;
 
   let pressCount = 0;
   let timer = null;
 
   const eventName = document.getElementById('event-name');
   const eventDetail = document.getElementById('event-detail');
-  const flash = document.getElementById('flash');
+  const wrapper = document.getElementById('wrapper');
   const log = document.getElementById('log');
 
   const actions = {
-    1: { label: 'SINGLE',  color: '#4ade80' },
-    2: { label: 'DOUBLE',  color: '#facc15' },
-    3: { label: 'TRIPLE',  color: '#f97316' },
+    1: { label: 'SINGLE', color: '#4ade80' },
+    2: { label: 'DOUBLE', color: '#facc15' },
+    3: { label: 'TRIPLE', color: '#f97316' },
   };
 
   function fireAction(count) {
@@ -153,9 +144,9 @@
     eventName.style.color = action.color;
     eventDetail.textContent = `${count} press${count > 1 ? 'es' : ''} detected`;
 
-    flash.style.background = action.color;
-    flash.style.opacity = '0.15';
-    setTimeout(() => flash.style.opacity = '0', 150);
+    // Flash the wrapper, not body — body stays black so iOS status bar stays dark
+    wrapper.style.background = action.color + '26'; // 26 = ~15% opacity in hex
+    setTimeout(() => wrapper.style.background = '', 150);
 
     addLog(action.label, count);
   }
@@ -175,10 +166,8 @@
     if (entries.length > 5) entries[entries.length - 1].remove();
   }
 
-  // Auto-focus so no click needed first
   document.body.focus();
 
-  // Prevent spacebar from scrolling
   window.addEventListener('keydown', (e) => {
     if (e.key === ' ') e.preventDefault();
   }, { capture: true });
@@ -186,10 +175,9 @@
   document.addEventListener('keydown', (e) => {
     if (e.key !== ' ') return;
     e.preventDefault();
-    if (e.repeat) return; // ignore held key
+    if (e.repeat) return;
 
     pressCount++;
-
     clearTimeout(timer);
     timer = setTimeout(() => {
       fireAction(pressCount);
