@@ -32,7 +32,7 @@
     }
 
     .point {
-      font-size: 26vw;
+      font-size: 48vh;
       font-weight: 800;
       line-height: 1;
       text-align: center;
@@ -80,12 +80,10 @@
     }
 
     #dot {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
       width: 40px;
       height: 40px;
       border-radius: 50%;
+      margin-top: 2vh;
     }
 
     #winner {
@@ -125,6 +123,7 @@
       <span class="game-divider">–</span>
       <span id="games-right">0</span>
     </div>
+    <video id="dot" autoplay playsinline muted loop></video>
   </div>
 
   <div class="point" id="pt-right">0</div>
@@ -134,8 +133,6 @@
   <div id="winner-text"></div>
   <button onclick="newMatch()">New Match</button>
 </div>
-
-<video id="dot" autoplay playsinline muted loop></video>
 
 <script>
   const POINTS = ['0', '15', '30', '40', 'AD'];
