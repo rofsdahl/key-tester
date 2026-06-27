@@ -20,7 +20,7 @@
       overflow: hidden;
     }
 
-    /* Top bar: Undo | dots-left | dots-center | dots-right | 0:0 */
+    /* Top bar: ndo | games-left | games-right | reset */
     #topbar { background: blue;
       display: flex;
       align-items: center;
@@ -39,10 +39,11 @@
     }
     .ctrl:active { color: #aaa; }
 
-    #dots-left, #dots-right {
+    #games-left, #games-right {
       display: flex;
       gap: 1.5vw;
       align-items: center;
+      font-size: 6vw;
     }
 
     .dot {
@@ -98,10 +99,10 @@
 <body tabindex="0">
 
 <div id="topbar">
-  <div class="ctrl" onclick="undo()">Undo ⎌⌫</div>
-  <div id="dots-left"></div>
-  <div id="dots-right"></div>
-  <div class="ctrl" onclick="reset()">0:0 ♻</div>
+  <div class="ctrl" onclick="undo()">⌫</div>
+  <div id="games-left"></div>
+  <div id="games-right"></div>
+  <div class="ctrl" onclick="reset()">♻</div>
 </div>
 
 <div id="scores">
@@ -130,19 +131,19 @@
 
   function addPoint(side) {
     history.push(JSON.parse(JSON.stringify(state)));
-    const opp = 1 - side;
+    const opposite = 1 - side;
     const p = state.pts;
 
     if (p[side] < 3) {
       p[side]++;
-    } else if (p[side] === 3 && p[opp] < 3) {
+    } else if (p[side] === 3 && p[opposite] < 3) {
       winGame(side);
-    } else if (p[side] === 3 && p[opp] === 3) {
+    } else if (p[side] === 3 && p[opposite] === 3) {
       p[side] = 4;
     } else if (p[side] === 4) {
       winGame(side);
-    } else if (p[opp] === 4) {
-      p[opp] = 3;
+    } else if (p[opposite] === 4) {
+      p[opposite] = 3;
     }
 
     render();
@@ -165,20 +166,15 @@
     render();
   }
 
-  function makeDots(count) {
-    return Array.from({ length: count }, () => '<div class="dot"></div>').join('');
-  }
-
   function render() {
     const ptL = POINTS[state.pts[0]];
     const ptR = POINTS[state.pts[1]];
     document.getElementById('pt-left').textContent = ptL;
     document.getElementById('pt-right').textContent = ptR;
-
-    document.getElementById('dots-left').innerHTML = makeDots(state.games[0]);
-    document.getElementById('dots-right').innerHTML = makeDots(state.games[1]);
+    document.getElementById('games-left').innerHTML = state.games[0];
+    document.getElementById('games-right').innerHTML = state.games[1];
   }
-
+ 
   render();
 
   // ── Button input ───────────────────────────────────────────────
@@ -223,7 +219,6 @@
       vid.play().catch(() => {});
     } catch(e) {}
   }
-
   // Try immediately, retry on first interaction
   startVideo();
   document.addEventListener('click', startVideo, { once: true });
@@ -233,13 +228,12 @@
   let phase = 0;
   (function draw() {
     phase += 0.015;
-    const t = (Math.sin(phase) + 1) / 2;
-    const b = Math.round(80 + t * 175);
+    const t = (Math.sin(phase) + 1) / 2; // Cycles 0->1->0->1
+    const b = Math.round(200 + t * 55);
     ctx.fillStyle = `rgb(${b},${b},${b})`;
     ctx.fillRect(0, 0, 20, 1000);
     requestAnimationFrame(draw);
   })();
 </script>
-
 </body>
 </html>
