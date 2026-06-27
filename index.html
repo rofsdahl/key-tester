@@ -53,24 +53,21 @@
       line-height: 1;
       min-height: 6rem;
     }
-    #dot {
+    #keepalive {
       position: fixed;
       bottom: 16px;
       right: 16px;
-      width: 8px;
-      height: 8px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
-      background: #fff;
-      opacity: 0;
-      transition: opacity 0.2s;
     }
   </style>
 </head>
 <body tabindex="0">
 
-  <h1>Button Tester - blink</h1>
+  <h1>Button Tester - video dot</h1>
   <div id="event-name"></div>
-  <div id="dot"></div>
+  <video id="keepalive" autoplay playsinline muted loop></video>
 
 <script>
   const WINDOW_MS = 400;
@@ -93,12 +90,32 @@
     if (document.visibilityState === 'visible') requestWakeLock();
   });
 
-  // Blinking dot — visible keepalive every 5 seconds
-  const dot = document.getElementById('dot');
-  setInterval(() => {
-    dot.style.opacity = '1';
-    setTimeout(() => dot.style.opacity = '0', 300);
-  }, 5000);
+  // Draw pulsing dot on canvas, stream into <video> so iOS treats it as media playback
+  const canvas = document.createElement('canvas');
+  canvas.width = 48; canvas.height = 48;
+  const ctx = canvas.getContext('2d');
+  const video = document.getElementById('keepalive');
+
+  let stream;
+  try {
+    stream = canvas.captureStream(30);
+    video.srcObject = stream;
+    video.play().catch(() => {});
+  } catch(e) {}
+
+  let phase = 0;
+  function drawDot() {
+    phase += 0.02;
+    const brightness = (Math.sin(phase) + 1) / 2; // 0 to 1
+    const gray = Math.round(brightness * 255);
+    ctx.clearRect(0, 0, 48, 48);
+    ctx.beginPath();
+    ctx.arc(24, 24, 16, 0, Math.PI * 2);
+    ctx.fillStyle = `rgb(${gray},${gray},${gray})`;
+    ctx.fill();
+    requestAnimationFrame(drawDot);
+  }
+  drawDot();
 
   window.addEventListener('keydown', (e) => {
     if (e.key === ' ') e.preventDefault();
