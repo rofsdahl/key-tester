@@ -33,11 +33,9 @@
       padding: 1vh 3vw;
     }
 
-    #scores {
+    #points-area {
       display: flex;
       flex: 1;
-      align-items: stretch;
-      overflow: hidden;
     }
 
     #points-left, #points-right {
@@ -73,7 +71,7 @@
   <div onclick="undo()">⌫</div>
 </div>
 
-<div id="scores">
+<div id="points-area">
   <div id="points-left" onclick="addPoint(0)">0</div>
   <div id="divider">
     <video id="keepalive" autoplay playsinline muted loop></video>
@@ -88,13 +86,13 @@
   let state = freshState();
 
   function freshState() {
-    return { pts: [0, 0], games: [0, 0] };
+    return { points: [0, 0], games: [0, 0] };
   }
 
   function addPoint(side) {
     history.push(JSON.parse(JSON.stringify(state)));
     const opposite = 1 - side;
-    const p = state.pts;
+    const p = state.points;
 
     if (p[side] < 3) {
       p[side]++;
@@ -112,7 +110,7 @@
   }
 
   function winGame(side) {
-    state.pts = [0, 0];
+    state.points = [0, 0];
     state.games[side]++;
   }
 
@@ -129,8 +127,8 @@
   }
 
   function render() {
-    document.getElementById('points-left').textContent = POINTS[state.pts[0]];
-    document.getElementById('points-right').textContent = POINTS[state.pts[1]];
+    document.getElementById('points-left').textContent = POINTS[state.points[0]];
+    document.getElementById('points-right').textContent = POINTS[state.points[1]];
     document.getElementById('games-left').textContent = state.games[0];
     document.getElementById('games-right').textContent = state.games[1];
   }
