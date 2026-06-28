@@ -55,13 +55,13 @@
       overflow: hidden;
     }
 
-    .point {
+    #points-left, #points-right {
       font-weight: 800;
       line-height: 1;
       text-align: center;
       font-size: 28vw;
     }
-
+    
     #divider {
       display: flex;
       flex-shrink: 0;
@@ -88,7 +88,7 @@
 
 <div id="scores">
   <div id="score-left" onclick="addPoint(0)">
-    <div class="point" id="points-left">0</div>
+    <div id="points-left">0</div>
   </div>
 
   <div id="divider">
@@ -96,7 +96,7 @@
   </div>
 
   <div id="score-right" onclick="addPoint(1)">
-    <div class="point" id="points-right">0</div>
+    <div id="points-right">0</div>
   </div>
 </div>
 
@@ -190,7 +190,7 @@
   // ── Canvas → video keepalive ───────────────────────────────────
   const canvas = document.createElement('canvas');
   canvas.width = 20;
-  canvas.height = 1000;
+  canvas.height = 800;
   const ctx = canvas.getContext('2d');
   const vid = document.getElementById('keepalive');
 
